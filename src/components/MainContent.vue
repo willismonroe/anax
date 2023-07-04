@@ -190,10 +190,11 @@ onMounted(async () => {
     Places" to see them appear on the map. You can edit the name of each place to change the string
     displayed in the label. You can remove each place manually, or clear all of the selected places.
     As you modify the map the URL will change to reflect the current status of the map. You can save
-    or distribute this URL to come back to the same map (it preserves name changes as well). To use
+    or distribute this URL to come back to the same map (it preserves name changes as well); here's an <a href="https://willismonroe.github.io/anax/?places=912986|Uruk&places=893964|Borsippa&places=893951|Babylon+(%F0%92%86%8D%F0%92%80%AD%F0%92%8A%8F%F0%92%86%A0)&places=912910|Nippur&places=893976|Ctesiphon">example url</a> featuring some cuneiform in a place label. To use
     this map in a presentation or publication, screenshot the resulting map and include the relevant
     attribution (and the URL if you want).
   </p>
+  <p>If you encounter bugs or think of improvements to this tool please add them to the <a href="https://github.com/willismonroe/anax/issues">issues page</a> on Github. If you want to help out with development feel free to pitch in as well!</p>
   <div>
     <div class="container">
       <div class="row">
