@@ -15,13 +15,15 @@ const map = ref<Map | null>()
 
 interface placeDataType {
   id: string
+  title: string
   data: object
+  changedName: boolean | null
+  known: boolean | null
 }
+
 const props = defineProps<{
   places: placeDataType[]
 }>()
-
-const placeData = ref<placeDataType[]>()
 
 const squareIcon = new DivIcon({
   html: '□',
@@ -52,25 +54,29 @@ function setupMap() {
   // Find center point... very janky
   let [max_lat, min_lat, max_long, min_long] = [0, 180, 0, 180]
   let [center_lat, center_long] = [37.9, 23.7]
+  let known_places = false
   for (const place of props.places) {
-    // TODO: fixme
-    // @ts-ignore
-    const [long, lat] = place.data.features[0].geometry.coordinates
-    if (max_long < long) {
-      max_long = long
-    }
-    if (min_long > long) {
-      min_long = long
-    }
-    if (max_lat < lat) {
-      max_lat = lat
-    }
-    if (min_lat > lat) {
-      min_lat = lat
+    if (place.known) {
+      known_places = true
+      // TODO: fixme
+      // @ts-ignore
+      const [long, lat] = place.data.features[0].geometry.coordinates
+      if (max_long < long) {
+        max_long = long
+      }
+      if (min_long > long) {
+        min_long = long
+      }
+      if (max_lat < lat) {
+        max_lat = lat
+      }
+      if (min_lat > lat) {
+        min_lat = lat
+      }
     }
   }
-  if (props.places.length > 0) {
-    [center_lat, center_long] = [(max_lat + min_lat) / 2, (max_long + min_long) / 2]
+  if (known_places) {
+    ;[center_lat, center_long] = [(max_lat + min_lat) / 2, (max_long + min_long) / 2]
   }
 
   map.value = new Map('container', {
@@ -81,7 +87,7 @@ function setupMap() {
     zoomSnap: 0.25
   }).setView([center_lat, center_long], zoom)
 
-  // tiles.addTo(map.value)
+  tiles.addTo(map.value)
   overlay.addTo(map.value)
   scale.addTo(map.value)
   markerLayer.addTo(map.value)
@@ -92,17 +98,19 @@ function reloadMarkers() {
   markerLayer.clearLayers()
   geoJSON.clearLayers()
   for (const place of props.places) {
-    // TODO: fixme
-    // @ts-ignore
-    place.data.features[0].title = place.title
-    // TODO: fixme
-    // @ts-ignore
-    let geoJSONdata = place.data.features[0]
-    // TODO: fixme
-    // @ts-ignore
-    geoJSONdata.title = place.title
-    geoJSON.addData(geoJSONdata)
-    // new Marker(place.data.features[0].geometry.coordinates.reverse()).addTo(markerLayer)
+    if (place.known) {
+      // TODO: fixme
+      // @ts-ignore
+      place.data.features[0].title = place.title
+
+      // TODO: fixme
+      // @ts-ignore
+      let geoJSONdata = place.data.features[0]
+      // TODO: fixme
+      // @ts-ignore
+      geoJSONdata.title = place.title
+      geoJSON.addData(geoJSONdata)
+    }
   }
 }
 

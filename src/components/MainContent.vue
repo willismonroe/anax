@@ -15,6 +15,7 @@ interface placeDataType {
   title: string
   data: object
   changedName: boolean | null
+  known: boolean | null
 }
 
 const placeData = ref<placeDataType[]>([])
@@ -78,10 +79,23 @@ async function addPlace(place: string[], name: string | null) {
   )
     .then((response) => response.json())
     .then((data) => {
+      const known = data.features[0].geometry ? true : false
       if (name) {
-        placeData.value.push({ id: place[1], title: name, data: data, changedName: true })
+        placeData.value.push({
+          id: place[1],
+          title: name,
+          data: data,
+          changedName: true,
+          known: known
+        })
       } else {
-        placeData.value.push({ id: place[1], title: data.title, data: data, changedName: false })
+        placeData.value.push({
+          id: place[1],
+          title: data.title,
+          data: data,
+          changedName: false,
+          known: known
+        })
       }
       mapUpdate.value += 1
       updateURL()
@@ -122,29 +136,29 @@ onMounted(async () => {
   if (route.query.places) {
     if (Array.isArray(route.query.places)) {
       for (const placeString of route.query.places) {
-            // TODO: fixme 
-    // @ts-ignore
+        // TODO: fixme
+        // @ts-ignore
         if (placeString.includes('|')) {
-              // TODO: fixme 
-    // @ts-ignore
+          // TODO: fixme
+          // @ts-ignore
           const [id, newTitle] = placeString.split('|')
           addPlace(
-                // TODO: fixme 
-    // @ts-ignore
+            // TODO: fixme
+            // @ts-ignore
             place_names.find((place) => place[1] == id),
             newTitle
           ).then(() => {
-                // TODO: fixme 
-    // @ts-ignore
+            // TODO: fixme
+            // @ts-ignore
             placeData.value.find((p) => p.id == id).title = newTitle
-                // TODO: fixme 
-    // @ts-ignore
+            // TODO: fixme
+            // @ts-ignore
             placeData.value.find((p) => p.id == id).changedName = true
             mapUpdate.value += 1
           })
         } else {
-              // TODO: fixme 
-    // @ts-ignore
+          // TODO: fixme
+          // @ts-ignore
           await addPlace(place_names.find((place) => place[1] == placeString))
         }
       }
@@ -152,21 +166,21 @@ onMounted(async () => {
       if (route.query.places.includes('|')) {
         const [id, newTitle] = route.query.places.split('|')
         await addPlace(
-              // TODO: fixme 
-    // @ts-ignore
+          // TODO: fixme
+          // @ts-ignore
           place_names.find((place) => place[1] == id),
           newTitle
         )
-            // TODO: fixme 
-    // @ts-ignore
+        // TODO: fixme
+        // @ts-ignore
         placeData.value.find((p) => p.id == id).title = newTitle
-            // TODO: fixme 
-    // @ts-ignore
+        // TODO: fixme
+        // @ts-ignore
         placeData.value.find((p) => p.id == id).changedName = true
         mapUpdate.value += 1
       } else {
-            // TODO: fixme 
-    // @ts-ignore
+        // TODO: fixme
+        // @ts-ignore
         await addPlace(place_names.find((place) => place[1] == route.query.places))
       }
     }
@@ -190,11 +204,20 @@ onMounted(async () => {
     Places" to see them appear on the map. You can edit the name of each place to change the string
     displayed in the label. You can remove each place manually, or clear all of the selected places.
     As you modify the map the URL will change to reflect the current status of the map. You can save
-    or distribute this URL to come back to the same map (it preserves name changes as well); here's an <a href="https://willismonroe.github.io/anax/?places=912986|Uruk&places=893964|Borsippa&places=893951|Babylon+(%F0%92%86%8D%F0%92%80%AD%F0%92%8A%8F%F0%92%86%A0)&places=912910|Nippur&places=893976|Ctesiphon">example url</a> featuring some cuneiform in a place label. To use
-    this map in a presentation or publication, screenshot the resulting map and include the relevant
-    attribution (and the URL if you want).
+    or distribute this URL to come back to the same map (it preserves name changes as well); here's
+    an
+    <a
+      href="https://willismonroe.github.io/anax/?places=912986|Uruk&places=893964|Borsippa&places=893951|Babylon+(%F0%92%86%8D%F0%92%80%AD%F0%92%8A%8F%F0%92%86%A0)&places=912910|Nippur&places=893976|Ctesiphon"
+      >example url</a
+    >
+    featuring some cuneiform in a place label. To use this map in a presentation or publication,
+    screenshot the resulting map and include the relevant attribution (and the URL if you want).
   </p>
-  <p>If you encounter bugs or think of improvements to this tool please add them to the <a href="https://github.com/willismonroe/anax/issues">issues page</a> on Github. If you want to help out with development feel free to pitch in as well!</p>
+  <p>
+    If you encounter bugs or think of improvements to this tool please add them to the
+    <a href="https://github.com/willismonroe/anax/issues">issues page</a> on Github. If you want to
+    help out with development feel free to pitch in as well!
+  </p>
   <div>
     <div class="container">
       <div class="row">
@@ -205,7 +228,8 @@ onMounted(async () => {
 
           <ul v-if="filterInput">
             <li v-for="(place, index) in filteredPlaces.slice(0, 10)" v-bind:key="index">
-              {{ place[0] }} <button v-on:click="addPlace(place, null)">Add</button>
+              {{ place[0] }}
+              <button class="btn btn-primary" v-on:click="addPlace(place, null)">→</button>
             </li>
           </ul>
         </div>
@@ -219,6 +243,20 @@ onMounted(async () => {
               </span>
               <span v-else
                 >{{ place.title }}
+                <span v-if="!place.known">
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    width="16"
+                    height="16"
+                    fill="currentColor"
+                    class="bi bi-exclamation-triangle-fill"
+                    viewBox="0 0 16 16"
+                  >
+                    <path
+                      d="M8.982 1.566a1.13 1.13 0 0 0-1.96 0L.165 13.233c-.457.778.091 1.767.98 1.767h13.713c.889 0 1.438-.99.98-1.767L8.982 1.566zM8 5c.535 0 .954.462.9.995l-.35 3.507a.552.552 0 0 1-1.1 0L7.1 5.995A.905.905 0 0 1 8 5zm.002 6a1 1 0 1 1 0 2 1 1 0 0 1 0-2z"
+                    />
+                  </svg>
+                </span>
                 <button class="btn btn-primary" @click="editPlaceName(index, place.title)">
                   Edit
                 </button>
