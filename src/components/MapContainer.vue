@@ -51,6 +51,7 @@ function setupMap() {
 
   // Find center point... very janky
   let [max_lat, min_lat, max_long, min_long] = [0, 180, 0, 180]
+  let [center_lat, center_long] = [37.9, 23.7]
   for (const place of props.places) {
     // TODO: fixme
     // @ts-ignore
@@ -68,7 +69,9 @@ function setupMap() {
       min_lat = lat
     }
   }
-  const [center_lat, center_long] = [(max_lat + min_lat) / 2, (max_long + min_long) / 2]
+  if (props.places.length > 0) {
+    [center_lat, center_long] = [(max_lat + min_lat) / 2, (max_long + min_long) / 2]
+  }
 
   map.value = new Map('container', {
     preferCanvas: true,
