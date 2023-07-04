@@ -3,7 +3,7 @@
 </template>
 
 <script setup lang="ts">
-import { onMounted, ref, watch, watchEffect } from 'vue'
+import { onMounted, ref } from 'vue'
 
 import 'leaflet/dist/leaflet.css'
 import { Map, TileLayer, Marker, Control, LayerGroup, GeoJSON, DivIcon, Point } from 'leaflet'
@@ -33,8 +33,12 @@ const tiles = new TileLayer(TILE_URL, { attribution: ATTRIBUTION, maxZoom: 18 })
 const overlay = new TileLayer('https://cawm.lib.uiowa.edu/tiles/{z}/{x}/{y}.png')
 const scale = new Control.Scale()
 const markerLayer = new LayerGroup()
+// TODO: fixme
+// @ts-ignore
 const geoJSON = new GeoJSON(null, {
   pointToLayer: function (feature, latlng) {
+    // TODO: fixme
+    // @ts-ignore
     return new Marker(latlng, { icon: squareIcon }).bindTooltip(feature.title, {
       permanent: true,
       direction: 'right'
@@ -48,6 +52,8 @@ function setupMap() {
   // Find center point... very janky
   let [max_lat, min_lat, max_long, min_long] = [0, 180, 0, 180]
   for (const place of props.places) {
+    // TODO: fixme
+    // @ts-ignore
     const [long, lat] = place.data.features[0].geometry.coordinates
     if (max_long < long) {
       max_long = long
@@ -62,14 +68,14 @@ function setupMap() {
       min_lat = lat
     }
   }
-  const [center_lat, center_long] = [(max_lat+min_lat)/2, (max_long+min_long)/2]
+  const [center_lat, center_long] = [(max_lat + min_lat) / 2, (max_long + min_long) / 2]
 
   map.value = new Map('container', {
     preferCanvas: true,
     zoomAnimation: false,
     zoomControl: false,
-    attributionControl:false,
-    zoomSnap: 0.25,
+    attributionControl: false,
+    zoomSnap: 0.25
   }).setView([center_lat, center_long], zoom)
 
   // tiles.addTo(map.value)
@@ -78,19 +84,24 @@ function setupMap() {
   markerLayer.addTo(map.value)
   geoJSON.addTo(map.value)
 }
- 
+
 function reloadMarkers() {
   markerLayer.clearLayers()
   geoJSON.clearLayers()
   for (const place of props.places) {
+    // TODO: fixme
+    // @ts-ignore
     place.data.features[0].title = place.title
+    // TODO: fixme
+    // @ts-ignore
     let geoJSONdata = place.data.features[0]
+    // TODO: fixme
+    // @ts-ignore
     geoJSONdata.title = place.title
     geoJSON.addData(geoJSONdata)
     // new Marker(place.data.features[0].geometry.coordinates.reverse()).addTo(markerLayer)
   }
 }
-
 
 onMounted(() => {
   setupMap()

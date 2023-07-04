@@ -3,6 +3,8 @@ import { computed, onMounted, ref } from 'vue'
 
 import MapContainer from './MapContainer.vue'
 
+// TODO: fixme
+// @ts-ignore
 import place_names from '../name_index.json'
 
 const selectedPlaces = ref<string[][]>([])
@@ -51,9 +53,13 @@ function savePlaceName(index: number) {
 const filteredPlaces = computed(() => {
   if (filterInput.value.length > 0) {
     const filter_text = filterInput.value.toLowerCase()
+    // TODO: fixme
+    // @ts-ignore
     const data = place_names.filter((place) => {
       return place[0].toLowerCase().startsWith(filter_text)
     })
+    // TODO: fixme
+    // @ts-ignore
     return data.sort((placeA, placeB) => {
       if (placeA[0] < placeB[0]) {
         return -1
@@ -116,17 +122,29 @@ onMounted(async () => {
   if (route.query.places) {
     if (Array.isArray(route.query.places)) {
       for (const placeString of route.query.places) {
+            // TODO: fixme 
+    // @ts-ignore
         if (placeString.includes('|')) {
+              // TODO: fixme 
+    // @ts-ignore
           const [id, newTitle] = placeString.split('|')
           addPlace(
+                // TODO: fixme 
+    // @ts-ignore
             place_names.find((place) => place[1] == id),
             newTitle
           ).then(() => {
+                // TODO: fixme 
+    // @ts-ignore
             placeData.value.find((p) => p.id == id).title = newTitle
+                // TODO: fixme 
+    // @ts-ignore
             placeData.value.find((p) => p.id == id).changedName = true
             mapUpdate.value += 1
           })
         } else {
+              // TODO: fixme 
+    // @ts-ignore
           await addPlace(place_names.find((place) => place[1] == placeString))
         }
       }
@@ -134,13 +152,21 @@ onMounted(async () => {
       if (route.query.places.includes('|')) {
         const [id, newTitle] = route.query.places.split('|')
         await addPlace(
+              // TODO: fixme 
+    // @ts-ignore
           place_names.find((place) => place[1] == id),
           newTitle
         )
+            // TODO: fixme 
+    // @ts-ignore
         placeData.value.find((p) => p.id == id).title = newTitle
+            // TODO: fixme 
+    // @ts-ignore
         placeData.value.find((p) => p.id == id).changedName = true
         mapUpdate.value += 1
       } else {
+            // TODO: fixme 
+    // @ts-ignore
         await addPlace(place_names.find((place) => place[1] == route.query.places))
       }
     }
@@ -155,7 +181,8 @@ onMounted(async () => {
     This tool allows you to make simple maps of points derived from the
     <a href="https://pleiades.stoa.org/">Pleiades project</a>. It uses a
     <a href="https://github.com/ryanfb/pleiades-geojson">dump</a> of the Pleiades data provided by
-    <a href="https://github.com/ryanfb">ryanfb</a>. It was created by <a href="https://willismonroe.com">Willis Monroe</a>.
+    <a href="https://github.com/ryanfb">ryanfb</a>. It was created by
+    <a href="https://willismonroe.com">Willis Monroe</a>.
   </p>
   <h4>Instructions:</h4>
   <p>
@@ -163,7 +190,9 @@ onMounted(async () => {
     Places" to see them appear on the map. You can edit the name of each place to change the string
     displayed in the label. You can remove each place manually, or clear all of the selected places.
     As you modify the map the URL will change to reflect the current status of the map. You can save
-    or distribute this URL to come back to the same map (it preserves name changes as well). To use this map in a presentation or publication, screenshot the resulting map and include the relevant attribution (and the URL if you want).
+    or distribute this URL to come back to the same map (it preserves name changes as well). To use
+    this map in a presentation or publication, screenshot the resulting map and include the relevant
+    attribution (and the URL if you want).
   </p>
   <div>
     <div class="container">
@@ -175,7 +204,7 @@ onMounted(async () => {
 
           <ul v-if="filterInput">
             <li v-for="(place, index) in filteredPlaces.slice(0, 10)" v-bind:key="index">
-              {{ place[0] }} <button v-on:click="addPlace(place)">Add</button>
+              {{ place[0] }} <button v-on:click="addPlace(place, null)">Add</button>
             </li>
           </ul>
         </div>
