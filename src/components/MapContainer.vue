@@ -1,5 +1,6 @@
 <template>
   <div id="container" style="height: 700px" />
+  <button class="btn btn-success" @click="exportMap">Download Map</button>
 </template>
 
 <script setup lang="ts">
@@ -7,6 +8,8 @@ import { onMounted, ref } from 'vue'
 
 import 'leaflet/dist/leaflet.css'
 import { Map, TileLayer, Marker, Control, LayerGroup, GeoJSON, DivIcon, Point } from 'leaflet'
+
+import html2canvas from 'html2canvas'
 
 const TILE_URL = 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png'
 const ATTRIBUTION = '&copy; <a href="https://www.openstreetmap.org/copyright">OSM</a>'
@@ -112,6 +115,23 @@ function reloadMarkers() {
       geoJSON.addData(geoJSONdata)
     }
   }
+}
+
+import { getCurrentInstance } from 'vue'
+const app = getCurrentInstance()
+
+import { saveAs } from 'file-saver';
+
+function exportMap() {
+  // TODO: fixme
+  // @ts-ignore
+  html2canvas(document.querySelector('#container'), {allowTaint: true, }).then((canvas) => {
+    canvas.toBlob(function (blob) {
+      // TODO: fixme
+      // @ts-ignore
+      saveAs(blob, 'map.png')
+    })
+  })
 }
 
 onMounted(() => {

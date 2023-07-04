@@ -12,6 +12,8 @@
     "format": "prettier --write src/"
   },
   "dependencies": {
+    "file-saver": "^2.0.5",
+    "html2canvas": "^1.4.1",
     "leaflet": "^1.9.4",
     "vue": "^3.3.4"
   },
