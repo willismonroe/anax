@@ -2,23 +2,14 @@
 import { computed, onMounted, ref } from 'vue'
 
 import MapContainer from './MapContainer.vue'
+import type { place, placeData, placeFeature } from '@/Place';
 
-// TODO: fixme
-// @ts-ignore
 import place_names from '../name_index.json'
 
 const selectedPlaces = ref<string[][]>([])
 const filterInput = ref('')
 
-interface placeDataType {
-  id: string
-  title: string
-  data: object
-  changedName: boolean | null
-  known: boolean | null
-}
-
-const placeData = ref<placeDataType[]>([])
+const placeData = ref<place[]>([])
 
 function clearFilter() {
   filterInput.value = ''
@@ -54,13 +45,11 @@ function savePlaceName(index: number) {
 const filteredPlaces = computed(() => {
   if (filterInput.value.length > 0) {
     const filter_text = filterInput.value.toLowerCase()
-    // TODO: fixme
-    // @ts-ignore
+
     const data = place_names.filter((place) => {
       return place[0].toLowerCase().startsWith(filter_text)
     })
-    // TODO: fixme
-    // @ts-ignore
+
     return data.sort((placeA, placeB) => {
       if (placeA[0] < placeB[0]) {
         return -1
@@ -73,14 +62,13 @@ const filteredPlaces = computed(() => {
   }
 })
 
-function moveToPlace(marker: placeDataType) {
+function moveToPlace(marker: place) {
 
   if(!location) return
 
   let [max_lat, min_lat, max_long, min_long] = [0, 180, 0, 180]
   let [center_lat, center_long] = [37.9, 23.7]
 
-  // @ts-ignore
   const [long, lat] = marker.data.features[0].geometry.coordinates
   if (max_long < long) {
     max_long = long
@@ -164,52 +152,69 @@ onMounted(async () => {
   if (route.query.places) {
     if (Array.isArray(route.query.places)) {
       for (const placeString of route.query.places) {
-        // TODO: fixme
-        // @ts-ignore
+
+        if(!placeString) continue
+
         if (placeString.includes('|')) {
-          // TODO: fixme
-          // @ts-ignore
+
           const [id, newTitle] = placeString.split('|')
+
+          const foundPlaceName = place_names.find((place) => place[1] == id)
+
+          if(!foundPlaceName) continue;
+
           addPlace(
-            // TODO: fixme
-            // @ts-ignore
-            place_names.find((place) => place[1] == id),
+            foundPlaceName,
             newTitle
           ).then(() => {
-            // TODO: fixme
-            // @ts-ignore
-            placeData.value.find((p) => p.id == id).title = newTitle
-            // TODO: fixme
-            // @ts-ignore
-            placeData.value.find((p) => p.id == id).changedName = true
+
+            const place = placeData.value.find((p) => p.id == id)
+
+            // Place not found by ID
+            if(!place) return
+            
+            place.title = newTitle
+            place.changedName = true
+            
             mapUpdate.value += 1
           })
         } else {
-          // TODO: fixme
-          // @ts-ignore
-          await addPlace(place_names.find((place) => place[1] == placeString))
+          
+          const place = place_names.find((place) => place[1] == placeString)
+
+          if(!place) return
+
+          await addPlace(place, null)
         }
       }
     } else {
       if (route.query.places.includes('|')) {
         const [id, newTitle] = route.query.places.split('|')
+
+        const place_name = place_names.find((place) => place[1] == id)
+
+        if(!place_name) return;
+
         await addPlace(
-          // TODO: fixme
-          // @ts-ignore
-          place_names.find((place) => place[1] == id),
+          place_name,
           newTitle
         )
-        // TODO: fixme
-        // @ts-ignore
-        placeData.value.find((p) => p.id == id).title = newTitle
-        // TODO: fixme
-        // @ts-ignore
-        placeData.value.find((p) => p.id == id).changedName = true
+
+        const place = placeData.value.find((p) => p.id == id)
+
+        if(!place) return;
+
+        place.title = newTitle
+        place.changedName = true
+        
         mapUpdate.value += 1
       } else {
-        // TODO: fixme
-        // @ts-ignore
-        await addPlace(place_names.find((place) => place[1] == route.query.places))
+
+        const place_name = place_names.find((place) => place[1] == route.query.places)
+
+        if(!place_name) return;
+
+        await addPlace(place_name, null)
       }
     }
     mapUpdate.value += 1

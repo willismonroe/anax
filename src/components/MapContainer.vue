@@ -7,28 +7,23 @@ import { onMounted, ref } from 'vue'
 
 import 'leaflet/dist/leaflet.css'
 import { Map, TileLayer, Marker, Control, LayerGroup, GeoJSON, DivIcon, Point, LatLng } from 'leaflet'
+import type { place, placeData, placeFeature } from '@/Place';
 
 const TILE_URL = 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png'
 const ATTRIBUTION = '&copy; <a href="https://www.openstreetmap.org/copyright">OSM</a>'
 
 const map = ref<Map | null>()
 
-interface placeDataType {
-  id: string
-  title: string
-  data: object
-  changedName: boolean | null
-  known: boolean | null
-}
+
 
 const props = defineProps<{
-  places: placeDataType[]
+  places: place[]
 }>()
 
 
 defineExpose({moveToMapLocation})
 
-const placeData = ref<placeDataType[]>()
+const placeData = ref<place[]>()
 
 const squareIcon = new DivIcon({
   html: '□',
@@ -40,13 +35,11 @@ const tiles = new TileLayer(TILE_URL, { attribution: ATTRIBUTION, maxZoom: 18 })
 const overlay = new TileLayer('https://cawm.lib.uiowa.edu/tiles/{z}/{x}/{y}.png')
 const scale = new Control.Scale()
 const markerLayer = new LayerGroup()
-// TODO: fixme
-// @ts-ignore
-const geoJSON = new GeoJSON(null, {
+
+const geoJSON = new GeoJSON(undefined, {
   pointToLayer: function (feature, latlng) {
-    // TODO: fixme
-    // @ts-ignore
-    return new Marker(latlng, { icon: squareIcon }).bindTooltip(feature.title, {
+
+    return new Marker(latlng, { icon: squareIcon }).bindTooltip((feature as any).title, {
       permanent: true,
       direction: 'right'
     })
@@ -61,10 +54,10 @@ function setupMap() {
   let [center_lat, center_long] = [37.9, 23.7]
   let known_places = false
   for (const place of props.places) {
+
     if (place.known) {
       known_places = true
-      // TODO: fixme
-      // @ts-ignore
+
       const [long, lat] = place.data.features[0].geometry.coordinates
       if (max_long < long) {
         max_long = long
@@ -118,17 +111,12 @@ function reloadMarkers() {
   geoJSON.clearLayers()
   for (const place of props.places) {
     if (place.known) {
-      // TODO: fixme
-      // @ts-ignore
       place.data.features[0].title = place.title
 
-      // TODO: fixme
-      // @ts-ignore
       let geoJSONdata = place.data.features[0]
-      // TODO: fixme
-      // @ts-ignore
+
       geoJSONdata.title = place.title
-      geoJSON.addData(geoJSONdata)
+      geoJSON.addData(geoJSONdata as any)
     }
   }
 }
