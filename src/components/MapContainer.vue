@@ -6,7 +6,7 @@
 import { onMounted, ref } from 'vue'
 
 import 'leaflet/dist/leaflet.css'
-import { Map, TileLayer, Marker, Control, LayerGroup, GeoJSON, DivIcon, Point } from 'leaflet'
+import { Map, TileLayer, Marker, Control, LayerGroup, GeoJSON, DivIcon, Point, LatLng } from 'leaflet'
 
 const TILE_URL = 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png'
 const ATTRIBUTION = '&copy; <a href="https://www.openstreetmap.org/copyright">OSM</a>'
@@ -24,6 +24,11 @@ interface placeDataType {
 const props = defineProps<{
   places: placeDataType[]
 }>()
+
+
+defineExpose({moveToMapLocation})
+
+const placeData = ref<placeDataType[]>()
 
 const squareIcon = new DivIcon({
   html: '□',
@@ -84,14 +89,28 @@ function setupMap() {
     zoomAnimation: false,
     zoomControl: false,
     attributionControl: false,
-    zoomSnap: 0.25
-  }).setView([center_lat, center_long], zoom)
+    zoomSnap: 0.25,
+    zoom: zoom
+  })
+
+  moveToMapLocation(center_lat, center_long)
 
   tiles.addTo(map.value)
   overlay.addTo(map.value)
   scale.addTo(map.value)
   markerLayer.addTo(map.value)
   geoJSON.addTo(map.value)
+}
+
+function moveToMapLocation(x: number, y: number) {
+
+  const mapValue = map.value;
+
+  if(!mapValue) return
+
+  const mapZoom = mapValue.getZoom()
+
+  mapValue.setView(new LatLng(x, y), mapZoom)
 }
 
 function reloadMarkers() {
