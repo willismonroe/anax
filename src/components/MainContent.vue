@@ -2,7 +2,8 @@
 import { computed, onMounted, ref } from 'vue'
 
 import MapContainer from './MapContainer.vue'
-import type { place, placeData, placeFeature } from '@/Place';
+import SelectedPlaces from './SelectedPlaces.vue'
+import type { place, placeData, placeFeature } from '@/Place'
 
 import place_names from '../name_index.json'
 
@@ -29,18 +30,14 @@ function removePlace(index: number) {
   mapUpdate.value += 1
 }
 
-function editPlaceName(index: number, title: string) {
-  editingIndex.value = index
-  editName.value = title
-}
-
-function savePlaceName(index: number) {
-  placeData.value[index].title = editName.value
+function savePlaceName(index: number, value: string) {
+  placeData.value[index].title = value
   placeData.value[index].changedName = true
-  editingIndex.value = null
   updateURL()
   mapUpdate.value += 1
 }
+
+const editingIndex = ref<number | null>(null)
 
 const filteredPlaces = computed(() => {
   if (filterInput.value.length > 0) {
@@ -62,14 +59,15 @@ const filteredPlaces = computed(() => {
   }
 })
 
-function moveToPlace(marker: place) {
+function moveToPlace(index: number) {
+  const place = placeData.value[index]
 
-  if(!location) return
+  if (!location) return
 
   let [max_lat, min_lat, max_long, min_long] = [0, 180, 0, 180]
   let [center_lat, center_long] = [37.9, 23.7]
 
-  const [long, lat] = marker.data.features[0].geometry.coordinates
+  const [long, lat] = place.data.features[0].geometry.coordinates
   if (max_long < long) {
     max_long = long
   }
@@ -83,7 +81,7 @@ function moveToPlace(marker: place) {
     min_lat = lat
   }
 
-  [center_lat, center_long] = [(max_lat + min_lat) / 2, (max_long + min_long) / 2]
+  ;[center_lat, center_long] = [(max_lat + min_lat) / 2, (max_long + min_long) / 2]
 
   mapRef.value.moveToMapLocation(center_lat, center_long)
 }
@@ -117,10 +115,6 @@ async function addPlace(place: string[], name: string | null) {
     })
   selectedPlaces.value.push(place)
 }
-
-const editingIndex = ref<number | null>(null)
-const editName = ref('')
-
 // This ref is just incremented every change we make to force a map reload, feels janky
 const mapUpdate = ref(0)
 const mapRef = ref()
@@ -152,37 +146,30 @@ onMounted(async () => {
   if (route.query.places) {
     if (Array.isArray(route.query.places)) {
       for (const placeString of route.query.places) {
-
-        if(!placeString) continue
+        if (!placeString) continue
 
         if (placeString.includes('|')) {
-
           const [id, newTitle] = placeString.split('|')
 
           const foundPlaceName = place_names.find((place) => place[1] == id)
 
-          if(!foundPlaceName) continue;
+          if (!foundPlaceName) continue
 
-          addPlace(
-            foundPlaceName,
-            newTitle
-          ).then(() => {
-
+          addPlace(foundPlaceName, newTitle).then(() => {
             const place = placeData.value.find((p) => p.id == id)
 
             // Place not found by ID
-            if(!place) return
-            
+            if (!place) return
+
             place.title = newTitle
             place.changedName = true
-            
+
             mapUpdate.value += 1
           })
         } else {
-          
           const place = place_names.find((place) => place[1] == placeString)
 
-          if(!place) return
+          if (!place) return
 
           await addPlace(place, null)
         }
@@ -193,26 +180,22 @@ onMounted(async () => {
 
         const place_name = place_names.find((place) => place[1] == id)
 
-        if(!place_name) return;
+        if (!place_name) return
 
-        await addPlace(
-          place_name,
-          newTitle
-        )
+        await addPlace(place_name, newTitle)
 
         const place = placeData.value.find((p) => p.id == id)
 
-        if(!place) return;
+        if (!place) return
 
         place.title = newTitle
         place.changedName = true
-        
+
         mapUpdate.value += 1
       } else {
-
         const place_name = place_names.find((place) => place[1] == route.query.places)
 
-        if(!place_name) return;
+        if (!place_name) return
 
         await addPlace(place_name, null)
       }
@@ -267,39 +250,12 @@ onMounted(async () => {
           </ul>
         </div>
         <div class="col-sm">
-          <h4>Selected Places:</h4>
-          <ul v-if="placeData.length > 0">
-            <li v-for="(place, index) in placeData" v-bind:key="index">
-              <span v-if="editingIndex == index">
-                <input v-model="editName" type="text" />
-                <button class="btn btn-success" @click="savePlaceName(index)">Save</button>
-              </span>
-              <span v-else
-                >{{ place.title }}
-                <span v-if="!place.known">
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    width="16"
-                    height="16"
-                    fill="currentColor"
-                    class="bi bi-exclamation-triangle-fill"
-                    viewBox="0 0 16 16"
-                  >
-                    <path
-                      d="M8.982 1.566a1.13 1.13 0 0 0-1.96 0L.165 13.233c-.457.778.091 1.767.98 1.767h13.713c.889 0 1.438-.99.98-1.767L8.982 1.566zM8 5c.535 0 .954.462.9.995l-.35 3.507a.552.552 0 0 1-1.1 0L7.1 5.995A.905.905 0 0 1 8 5zm.002 6a1 1 0 1 1 0 2 1 1 0 0 1 0-2z"
-                    />
-                  </svg>
-                </span>
-                <button class="btn btn-primary" @click="editPlaceName(index, place.title)">
-                  Edit
-                </button>
-                <button class="btn btn-success" @click="moveToPlace(place)">
-                  Move to
-                </button>
-                <button class="btn btn-danger" @click="removePlace(index)">Remove</button>
-              </span>
-            </li>
-          </ul>
+          <SelectedPlaces
+            :places="placeData"
+            @savePlaceName="savePlaceName"
+            @moveToPlace="moveToPlace"
+            @removePlace="removePlace"
+          />
           <span class="clear-btn">
             <button
               class="btn btn-danger"
@@ -313,7 +269,7 @@ onMounted(async () => {
       </div>
     </div>
   </div>
-  <MapContainer :places="placeData" :key="mapUpdate" ref="mapRef"/>
+  <MapContainer :places="placeData" :key="mapUpdate" ref="mapRef" />
   <h4>Attribution:</h4>
   <p>
     The map data is provided by <a href="https://pleiades.stoa.org/credits">Pleiades</a> under a
