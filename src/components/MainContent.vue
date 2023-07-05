@@ -72,6 +72,33 @@ const filteredPlaces = computed(() => {
   }
 })
 
+function moveToPlace(marker: placeDataType) {
+
+  if(!location) return
+
+  let [max_lat, min_lat, max_long, min_long] = [0, 180, 0, 180]
+  let [center_lat, center_long] = [37.9, 23.7]
+
+  // @ts-ignore
+  const [long, lat] = marker.data.features[0].geometry.coordinates
+  if (max_long < long) {
+    max_long = long
+  }
+  if (min_long > long) {
+    min_long = long
+  }
+  if (max_lat < lat) {
+    max_lat = lat
+  }
+  if (min_lat > lat) {
+    min_lat = lat
+  }
+
+  [center_lat, center_long] = [(max_lat + min_lat) / 2, (max_long + min_long) / 2]
+
+  mapRef.value.moveToMapLocation(center_lat, center_long)
+}
+
 async function addPlace(place: string[], name: string | null) {
   await fetch(
     `https://raw.githubusercontent.com/ryanfb/pleiades-geojson/gh-pages/geojson/${place[1]}.geojson`
@@ -94,6 +121,7 @@ const editName = ref('')
 
 // This ref is just incremented every change we make to force a map reload, feels janky
 const mapUpdate = ref(0)
+const mapRef = ref()
 
 import { useRouter, useRoute } from 'vue-router'
 
@@ -222,6 +250,9 @@ onMounted(async () => {
                 <button class="btn btn-primary" @click="editPlaceName(index, place.title)">
                   Edit
                 </button>
+                <button class="btn btn-success" @click="moveToPlace(place)">
+                  Move to
+                </button>
                 <button class="btn btn-danger" @click="removePlace(index)">Remove</button>
               </span>
             </li>
@@ -239,7 +270,7 @@ onMounted(async () => {
       </div>
     </div>
   </div>
-  <MapContainer :places="placeData" :key="mapUpdate" />
+  <MapContainer :places="placeData" :key="mapUpdate" ref="mapRef"/>
   <h4>Attribution:</h4>
   <p>
     The map data is provided by <a href="https://pleiades.stoa.org/credits">Pleiades</a> under a
