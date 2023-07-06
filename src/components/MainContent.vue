@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { computed, onMounted, ref } from 'vue'
+import { useRouter, useRoute } from 'vue-router'
 
 import MapContainer from './MapContainer.vue'
 import SelectedPlaces from './SelectedPlaces.vue'
@@ -7,9 +8,12 @@ import type { place, placeData, placeFeature } from '@/Place'
 
 import place_names from '../name_index.json'
 
-const selectedPlaces = ref<string[][]>([])
-const filterInput = ref('')
+// This ref is just incremented every change we make to force a map reload, feels janky
+const mapUpdate = ref(0)
+const mapRef = ref()
+const router = useRouter()
 
+const filterInput = ref('')
 const placeData = ref<place[]>([])
 
 function clearFilter() {
@@ -17,14 +21,12 @@ function clearFilter() {
 }
 
 function clearSelectedPlaces() {
-  selectedPlaces.value = []
   placeData.value = []
   mapUpdate.value += 1
   updateURL()
 }
 
 function removePlace(index: number) {
-  selectedPlaces.value.splice(index, 1)
   placeData.value.splice(index, 1)
   updateURL()
   mapUpdate.value += 1
@@ -37,7 +39,9 @@ function savePlaceName(index: number, value: string) {
   mapUpdate.value += 1
 }
 
-const editingIndex = ref<number | null>(null)
+const fullURL = computed(() => {
+  return window.location.href
+})
 
 const filteredPlaces = computed(() => {
   if (filterInput.value.length > 0) {
@@ -61,67 +65,29 @@ const filteredPlaces = computed(() => {
 
 function moveToPlace(index: number) {
   const place = placeData.value[index]
-
   if (!location) return
-
-  let [max_lat, min_lat, max_long, min_long] = [0, 180, 0, 180]
-  let [center_lat, center_long] = [37.9, 23.7]
-
   const [long, lat] = place.data.features[0].geometry.coordinates
-  if (max_long < long) {
-    max_long = long
-  }
-  if (min_long > long) {
-    min_long = long
-  }
-  if (max_lat < lat) {
-    max_lat = lat
-  }
-  if (min_lat > lat) {
-    min_lat = lat
-  }
-
-  ;[center_lat, center_long] = [(max_lat + min_lat) / 2, (max_long + min_long) / 2]
-
-  mapRef.value.moveToMapLocation(center_lat, center_long)
+  mapRef.value.moveToMapLocation(lat, long)
 }
 
-async function addPlace(place: string[], name: string | null) {
+async function addPlace(place: string[], name?: string) {
   await fetch(
     `https://raw.githubusercontent.com/ryanfb/pleiades-geojson/gh-pages/geojson/${place[1]}.geojson`
   )
     .then((response) => response.json())
     .then((data) => {
       const known = data.features[0].geometry ? true : false
-      if (name) {
-        placeData.value.push({
-          id: place[1],
-          title: name,
-          data: data,
-          changedName: true,
-          known: known
-        })
-      } else {
-        placeData.value.push({
-          id: place[1],
-          title: data.title,
-          data: data,
-          changedName: false,
-          known: known
-        })
-      }
+      placeData.value.push({
+        id: place[1],
+        title: name || data.title,
+        data: data,
+        changedName: name ? true : false,
+        known: known
+      })
       mapUpdate.value += 1
       updateURL()
     })
-  selectedPlaces.value.push(place)
 }
-// This ref is just incremented every change we make to force a map reload, feels janky
-const mapUpdate = ref(0)
-const mapRef = ref()
-
-import { useRouter, useRoute } from 'vue-router'
-
-const router = useRouter()
 
 function updateURL() {
   let placeList = []
@@ -171,7 +137,7 @@ onMounted(async () => {
 
           if (!place) return
 
-          await addPlace(place, null)
+          await addPlace(place)
         }
       }
     } else {
@@ -197,7 +163,7 @@ onMounted(async () => {
 
         if (!place_name) return
 
-        await addPlace(place_name, null)
+        await addPlace(place_name)
       }
     }
     mapUpdate.value += 1
@@ -238,18 +204,19 @@ onMounted(async () => {
     <div class="container">
       <div class="row">
         <div class="col-sm">
-          <h4>Search Places:</h4>
+          <h5>Search Places:</h5>
           <input type="text" v-model.trim="filterInput" autofocus />
           <button class="btn btn-danger" v-on:click="clearFilter">Clear</button>
 
           <ul v-if="filterInput">
             <li v-for="(place, index) in filteredPlaces.slice(0, 10)" v-bind:key="index">
               {{ place[0] }}
-              <button class="btn btn-primary" v-on:click="addPlace(place, null)">→</button>
+              <button class="btn btn-primary" v-on:click="addPlace(place)">→</button>
             </li>
           </ul>
         </div>
         <div class="col-sm">
+          <h5>Selected Places:</h5>
           <SelectedPlaces
             :places="placeData"
             @savePlaceName="savePlaceName"
@@ -269,7 +236,12 @@ onMounted(async () => {
       </div>
     </div>
   </div>
-  <MapContainer :places="placeData" :key="mapUpdate" ref="mapRef" />
+  <h4>Map:</h4>
+  <div class="map-border">
+      <MapContainer :places="placeData" :key="mapUpdate" ref="mapRef" />
+  </div>
+  <h4>URL:</h4>
+  <pre>{{ fullURL }}</pre>
   <h4>Attribution:</h4>
   <p>
     The map data is provided by <a href="https://pleiades.stoa.org/credits">Pleiades</a> under a
@@ -294,5 +266,8 @@ span {
   flex-direction: column;
   align-items: center;
   justify-content: center;
+}
+.map-border {
+  border: 5px solid black;
 }
 </style>

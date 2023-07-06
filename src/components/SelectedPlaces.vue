@@ -30,7 +30,6 @@ function editPlaceName(index: number, title: string) {
 </script>
 
 <template>
-  <h4>Selected Places:</h4>
   <ul v-if="places.length > 0">
     <li v-for="(place, index) in places" v-bind:key="index">
       <span v-if="editingIndex == index">
