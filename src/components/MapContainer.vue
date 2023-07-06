@@ -1,27 +1,34 @@
 <template>
-  <div id="container" style="height: 900px" />
+  <div id="container" style="height: 50rem;" />
 </template>
 
 <script setup lang="ts">
 import { onMounted, ref } from 'vue'
 
 import 'leaflet/dist/leaflet.css'
-import { Map, TileLayer, Marker, Control, LayerGroup, GeoJSON, DivIcon, Point, LatLng } from 'leaflet'
-import type { place, placeData, placeFeature } from '@/Place';
+import {
+  Map,
+  TileLayer,
+  Marker,
+  Control,
+  LayerGroup,
+  GeoJSON,
+  DivIcon,
+  Point,
+  LatLng
+} from 'leaflet'
+import type { place, placeData, placeFeature } from '@/Place'
 
 const TILE_URL = 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png'
 const ATTRIBUTION = '&copy; <a href="https://www.openstreetmap.org/copyright">OSM</a>'
 
 const map = ref<Map | null>()
 
-
-
 const props = defineProps<{
   places: place[]
 }>()
 
-
-defineExpose({moveToMapLocation})
+defineExpose({ moveToMapLocation })
 
 const placeData = ref<place[]>()
 
@@ -31,14 +38,21 @@ const squareIcon = new DivIcon({
   iconAnchor: new Point(7, 22)
 })
 
-const tiles = new TileLayer(TILE_URL, { attribution: ATTRIBUTION, maxZoom: 18 })
-const overlay = new TileLayer('https://cawm.lib.uiowa.edu/tiles/{z}/{x}/{y}.png')
+const tiles = new TileLayer(TILE_URL, {
+  attribution: ATTRIBUTION,
+  maxZoom: 18,
+  tileSize: 512,
+  zoomOffset: -1
+})
+const overlay = new TileLayer('https://cawm.lib.uiowa.edu/tiles/{z}/{x}/{y}.png', {
+  tileSize: 512,
+  zoomOffset: -1
+})
 const scale = new Control.Scale()
 const markerLayer = new LayerGroup()
 
 const geoJSON = new GeoJSON(undefined, {
   pointToLayer: function (feature, latlng) {
-
     return new Marker(latlng, { icon: squareIcon }).bindTooltip((feature as any).title, {
       permanent: true,
       direction: 'right'
@@ -54,7 +68,6 @@ function setupMap() {
   let [center_lat, center_long] = [37.9, 23.7]
   let known_places = false
   for (const place of props.places) {
-
     if (place.known) {
       known_places = true
 
@@ -96,10 +109,9 @@ function setupMap() {
 }
 
 function moveToMapLocation(x: number, y: number) {
+  const mapValue = map.value
 
-  const mapValue = map.value;
-
-  if(!mapValue) return
+  if (!mapValue) return
 
   const mapZoom = mapValue.getZoom()
 
@@ -132,15 +144,19 @@ onMounted(() => {
   background-color: transparent;
   border: transparent;
   font-size: 2em;
+  font-weight: 1000;
 }
 
 .leaflet-tooltip {
   background-color: transparent;
   border: transparent;
   box-shadow: none;
-  color: white;
-  font-size: 1.4em;
-  -webkit-text-stroke: 1px black;
+  color: black;
+  font-size: 1.6em;
+  font-weight: 800;
+  /* position: relative; */
+  top: 2px;
+  /* -webkit-text-stroke: 1px white; */
 }
 
 .leaflet-popup-tip-container {
