@@ -1,10 +1,13 @@
 <template>
-  <div id="container" style="height: 50rem;" />
+  <div>
+    <input type="checkbox" v-model="grayscaleMode" id="toggleGrayscale" />
+    <label for="toggleGrayscale">Toggle Grayscale</label>
+    <div id="container" style="height: 50rem;" />
+  </div>
 </template>
 
 <script setup lang="ts">
-import { onMounted, ref } from 'vue'
-
+import { onMounted, ref, watch } from 'vue'
 import 'leaflet/dist/leaflet.css'
 import {
   Map,
@@ -20,10 +23,10 @@ import {
 import type { place, placeData, placeFeature } from '@/Place'
 
 const TILE_URL = 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png'
-const ATTRIBUTION = '&copy; <a href="https://www.openstreetmap.org/copyright">OSM</a>'
+const ATTRIBUTION =
+  '&copy; <a href="https://www.openstreetmap.org/copyright">OSM</a>'
 
 const map = ref<Map | null>()
-
 const props = defineProps<{
   places: place[]
 }>()
@@ -35,30 +38,38 @@ const placeData = ref<place[]>()
 const squareIcon = new DivIcon({
   html: '□',
   iconSize: new Point(14, 22),
-  iconAnchor: new Point(7, 22)
+  iconAnchor: new Point(7, 22),
 })
 
 const tiles = new TileLayer(TILE_URL, {
   attribution: ATTRIBUTION,
   maxZoom: 18,
   tileSize: 512,
-  zoomOffset: -1
+  zoomOffset: -1,
 })
-const overlay = new TileLayer('https://cawm.lib.uiowa.edu/tiles/{z}/{x}/{y}.png', {
-  tileSize: 512,
-  zoomOffset: -1
-})
+const overlay = new TileLayer(
+  'https://cawm.lib.uiowa.edu/tiles/{z}/{x}/{y}.png',
+  {
+    tileSize: 512,
+    zoomOffset: -1,
+  }
+)
 const scale = new Control.Scale()
 const markerLayer = new LayerGroup()
 
 const geoJSON = new GeoJSON(undefined, {
   pointToLayer: function (feature, latlng) {
-    return new Marker(latlng, { icon: squareIcon }).bindTooltip((feature as any).title, {
-      permanent: true,
-      direction: 'right'
-    })
-  }
+    return new Marker(latlng, { icon: squareIcon }).bindTooltip(
+      (feature as any).title,
+      {
+        permanent: true,
+        direction: 'right',
+      }
+    )
+  },
 })
+
+let grayscaleMode = ref(false)
 
 function setupMap() {
   let zoom = 6
@@ -87,7 +98,10 @@ function setupMap() {
     }
   }
   if (known_places) {
-    ;[center_lat, center_long] = [(max_lat + min_lat) / 2, (max_long + min_long) / 2]
+    ;[center_lat, center_long] = [
+      (max_lat + min_lat) / 2,
+      (max_long + min_long) / 2,
+    ]
   }
 
   map.value = new Map('container', {
@@ -96,7 +110,7 @@ function setupMap() {
     zoomControl: false,
     attributionControl: false,
     zoomSnap: 0.25,
-    zoom: zoom
+    zoom: zoom,
   })
 
   moveToMapLocation(center_lat, center_long)
@@ -137,6 +151,17 @@ onMounted(() => {
   setupMap()
   reloadMarkers()
 })
+
+watch(grayscaleMode, (value) => {
+  const tilePane = document.querySelector('.leaflet-tile-pane')
+  if (tilePane) {
+    if (value) {
+      tilePane.style.filter = 'grayscale(100%)'
+    } else {
+      tilePane.style.filter = ''
+    }
+  }
+})
 </script>
 
 <style>
@@ -154,9 +179,7 @@ onMounted(() => {
   color: black;
   font-size: 1.6em;
   font-weight: 800;
-  /* position: relative; */
   top: 2px;
-  /* -webkit-text-stroke: 1px white; */
 }
 
 .leaflet-popup-tip-container {
@@ -172,10 +195,5 @@ onMounted(() => {
   border: 6px solid transparent;
   background: transparent;
   content: '';
-}
-
-.leaflet-tile-pane {
-  -webkit-filter: grayscale(100%);
-  filter: grayscale(100%);
 }
 </style>
