@@ -15,7 +15,7 @@ const router = useRouter()
 
 const filterInput = ref('')
 const placeData = ref<place[]>([])
-const icon = ref('')
+const icon = ref('☐')
 
 function clearFilter() {
   filterInput.value = ''
@@ -212,16 +212,6 @@ onMounted(async () => {
           <h5>Search Places:</h5>
           <input type="text" v-model.trim="filterInput" autofocus />
           <button class="btn btn-danger" v-on:click="clearFilter">Clear</button>
-          <h5>Select Icon</h5>
-          <select v-model="icon" @change="updateMap">
-            <option>★</option>
-            <option>✱</option>
-            <option>◈</option>
-            <option>❖</option>
-            <option>▲</option>
-            <option>⇩</option>
-          </select>
-
           <ul v-if="filterInput">
             <li v-for="(place, index) in filteredPlaces.slice(0, 10)" v-bind:key="index">
               {{ place[0] }}
@@ -246,6 +236,16 @@ onMounted(async () => {
               Clear Selected Places
             </button>
           </span>
+          <h5>Select Icon</h5>
+          <select v-model="icon" @change="updateMap">
+            <option selected>☐</option>
+            <option>★</option>
+            <option>✱</option>
+            <option>◈</option>
+            <option>❖</option>
+            <option>▲</option>
+            <option>⇩</option>
+          </select>
         </div>
       </div>
     </div>
