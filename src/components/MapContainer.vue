@@ -1,5 +1,5 @@
 <template>
-  <div id="container" style="height: 50rem;" />
+  <div id="container" style="height: 50rem" />
 </template>
 
 <script setup lang="ts">
@@ -26,6 +26,7 @@ const map = ref<Map | null>()
 
 const props = defineProps<{
   places: place[]
+  icon: string
 }>()
 
 defineExpose({ moveToMapLocation })
@@ -33,7 +34,7 @@ defineExpose({ moveToMapLocation })
 const placeData = ref<place[]>()
 
 const squareIcon = new DivIcon({
-  html: '□',
+  html: props.icon,
   iconSize: new Point(14, 22),
   iconAnchor: new Point(7, 22)
 })
