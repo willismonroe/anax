@@ -15,7 +15,7 @@ const router = useRouter()
 
 const filterInput = ref('')
 const placeData = ref<place[]>([])
-const icon = ref('☐')
+const icon = ref('□')
 
 function clearFilter() {
   filterInput.value = ''
@@ -238,7 +238,7 @@ onMounted(async () => {
           </span>
           <h5>Select Icon</h5>
           <select v-model="icon" @change="updateMap">
-            <option selected>☐</option>
+            <option selected>□</option>
             <option>★</option>
             <option>✱</option>
             <option>◈</option>
