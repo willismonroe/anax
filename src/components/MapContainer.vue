@@ -1,10 +1,9 @@
 <template>
-  <div id="container" style="height: 50rem" />
+  <div id="container" style="height: 50rem" ></div>
 </template>
 
 <script setup lang="ts">
 import { onMounted, ref } from 'vue'
-
 import 'leaflet/dist/leaflet.css'
 import {
   Map,
@@ -15,9 +14,10 @@ import {
   GeoJSON,
   DivIcon,
   Point,
-  LatLng
+  LatLng,
+  latLng
 } from 'leaflet'
-import type { place, placeData, placeFeature } from '@/Place'
+import type { place, placeData, placeFeature } from '../Place'
 
 const TILE_URL = 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png'
 const ATTRIBUTION = '&copy; <a href="https://www.openstreetmap.org/copyright">OSM</a>'
@@ -34,10 +34,11 @@ defineExpose({ moveToMapLocation })
 const placeData = ref<place[]>()
 
 const squareIcon = new DivIcon({
-  html: props.icon,
-  iconSize: new Point(14, 22),
-  iconAnchor: new Point(7, 22)
-})
+    html:props.icon,
+    iconSize: new Point(14, 22),
+    iconAnchor: new Point(7, 22)
+  })
+
 
 const tiles = new TileLayer(TILE_URL, {
   attribution: ATTRIBUTION,
