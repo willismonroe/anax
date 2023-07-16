@@ -17,6 +17,11 @@ const filterInput = ref('')
 const placeData = ref<place[]>([])
 const icon = ref('□')
 
+
+// function updateIcon(){
+//   icon = 
+// }
+
 function clearFilter() {
   filterInput.value = ''
 }
@@ -174,6 +179,7 @@ onMounted(async () => {
     mapUpdate.value += 1
   }
 })
+console.log(mapUpdate.value)
 </script>
 
 <template>
@@ -252,7 +258,7 @@ onMounted(async () => {
   </div>
   <h4>Map:</h4>
   <div class="map-border">
-    <MapContainer :places="placeData" :key="mapUpdate" :icon="icon" ref="mapRef" />
+    <MapContainer :places="placeData" :key="mapUpdate" :icon="icon"  ref="mapRef" />
   </div>
   <h4>URL:</h4>
   <pre>{{ fullURL }}</pre>
@@ -284,4 +290,5 @@ span {
 .map-border {
   border: 5px solid black;
 }
+
 </style>
