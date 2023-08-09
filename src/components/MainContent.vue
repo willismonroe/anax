@@ -6,7 +6,7 @@ import MapContainer from './MapContainer.vue'
 import SelectedPlaces from './SelectedPlaces.vue'
 import type { place, placeData, placeFeature } from '@/Place'
 
-import place_names from '../name_index.json'
+// import place_names from '../name_index.json'
 
 // This ref is just incremented every change we make to force a map reload, feels janky
 const mapUpdate = ref(0)
@@ -14,6 +14,7 @@ const mapRef = ref()
 const router = useRouter()
 
 const filterInput = ref('')
+const place_names = ref<object | null>()
 const placeData = ref<place[]>([])
 
 function clearFilter() {
@@ -47,7 +48,7 @@ const filteredPlaces = computed(() => {
   if (filterInput.value.length > 0) {
     const filter_text = filterInput.value.toLowerCase()
 
-    const data = place_names.filter((place) => {
+    const data = place_names.value.filter((place) => {
       return place[0].toLowerCase().startsWith(filter_text)
     })
 
@@ -109,6 +110,13 @@ const route = useRoute()
 
 onMounted(async () => {
   await router.isReady()
+
+  await fetch('https://raw.githubusercontent.com/ryanfb/pleiades-geojson/gh-pages/name_index.json')
+    .then((response) => response.json())
+    .then((data) => {
+      place_names.value = data
+    })
+
   if (route.query.places) {
     if (Array.isArray(route.query.places)) {
       for (const placeString of route.query.places) {
@@ -117,7 +125,7 @@ onMounted(async () => {
         if (placeString.includes('|')) {
           const [id, newTitle] = placeString.split('|')
 
-          const foundPlaceName = place_names.find((place) => place[1] == id)
+          const foundPlaceName = place_names.value.find((place) => place[1] == id)
 
           if (!foundPlaceName) continue
 
@@ -133,7 +141,7 @@ onMounted(async () => {
             mapUpdate.value += 1
           })
         } else {
-          const place = place_names.find((place) => place[1] == placeString)
+          const place = place_names.value.find((place) => place[1] == placeString)
 
           if (!place) return
 
@@ -144,7 +152,7 @@ onMounted(async () => {
       if (route.query.places.includes('|')) {
         const [id, newTitle] = route.query.places.split('|')
 
-        const place_name = place_names.find((place) => place[1] == id)
+        const place_name = place_names.value.find((place) => place[1] == id)
 
         if (!place_name) return
 
@@ -159,7 +167,7 @@ onMounted(async () => {
 
         mapUpdate.value += 1
       } else {
-        const place_name = place_names.find((place) => place[1] == route.query.places)
+        const place_name = place_names.value.find((place) => place[1] == route.query.places)
 
         if (!place_name) return
 
@@ -238,7 +246,7 @@ onMounted(async () => {
   </div>
   <h4>Map:</h4>
   <div class="map-border">
-      <MapContainer :places="placeData" :key="mapUpdate" ref="mapRef" />
+    <MapContainer :places="placeData" :key="mapUpdate" ref="mapRef" />
   </div>
   <h4>URL:</h4>
   <pre>{{ fullURL }}</pre>
