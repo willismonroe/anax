@@ -17,6 +17,7 @@ const filterInput = ref('')
 const place_names = ref<Array<[string, string]>>([])
 const placeData = ref<place[]>([])
 const icon = ref('□')
+const toggleColor = ref(true)
 
 function clearFilter() {
   filterInput.value = ''
@@ -244,23 +245,40 @@ onMounted(async () => {
               Clear Selected Places
             </button>
           </span>
-          <h5>Select Icon</h5>
-          <select v-model="icon" @change="updateMap">
-            <option selected>□</option>
-            <option>★</option>
-            <option>✱</option>
-            <option>◈</option>
-            <option>❖</option>
-            <option>▲</option>
-            <option>⇩</option>
-          </select>
+          <div class="row">
+            <div class="col">
+              <h5>Select Icon</h5>
+              <select v-model="icon" @change="updateMap">
+                <option selected>□</option>
+                <option>★</option>
+                <option>✱</option>
+                <option>◈</option>
+                <option>❖</option>
+                <option>▲</option>
+                <option>⇩</option>
+              </select>
+            </div>
+            <div class="col">
+              <h5>Toggle color</h5>
+              <div class="form-check form-switch">
+                <input class="form-check-input" type="checkbox" id="toggleColor" :value="toggleColor" :checked="toggleColor" @click="toggleColor = !toggleColor"/>
+                <label class="form-check-label" for="toggleColor">Color/Grayscale</label>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     </div>
   </div>
   <h4>Map:</h4>
   <div class="map-border">
-    <MapContainer :places="placeData" :key="mapUpdate" :icon="icon" ref="mapRef" />
+    <MapContainer
+      :places="placeData"
+      :key="mapUpdate"
+      :icon="icon"
+      :toggleColor="toggleColor"
+      ref="mapRef"
+    />
   </div>
   <h4>URL:</h4>
   <pre>{{ fullURL }}</pre>

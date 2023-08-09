@@ -1,5 +1,7 @@
 <template>
-  <div id="container" style="height: 50rem" />
+  <div :class="toggleColor ? '' : 'grayscale'" >
+      <div id="container" style="height: 50rem" />
+  </div>
 </template>
 
 <script setup lang="ts">
@@ -27,6 +29,7 @@ const map = ref<Map | null>()
 const props = defineProps<{
   places: place[]
   icon: string
+  toggleColor: boolean
 }>()
 
 defineExpose({ moveToMapLocation })
@@ -175,7 +178,12 @@ onMounted(() => {
   content: '';
 }
 
-.leaflet-tile-pane {
+/* .leaflet-tile-pane {
+  -webkit-filter: grayscale(100%);
+  filter: grayscale(100%);
+} */
+
+.grayscale {
   -webkit-filter: grayscale(100%);
   filter: grayscale(100%);
 }
