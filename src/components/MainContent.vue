@@ -14,7 +14,7 @@ const mapRef = ref()
 const router = useRouter()
 
 const filterInput = ref('')
-const place_names = ref<object | null>()
+const place_names = ref<Array<[string, string]>>([])
 const placeData = ref<place[]>([])
 const icon = ref('□')
 
