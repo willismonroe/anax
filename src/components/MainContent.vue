@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, onMounted, ref } from 'vue'
+import { computed, onMounted, ref, type Ref, watch } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 
 import MapContainer from './MapContainer.vue'
@@ -46,9 +46,17 @@ function updateMap() {
   mapUpdate.value += 1
 }
 
-const fullURL = computed(() => {
-  return window.location.href
-})
+const fullURL: Ref<string> = ref(window.location.href)
+
+watch(
+  () => router,
+  () => {
+    fullURL.value = window.location.href
+  },
+  {
+    deep: true
+  }
+)
 
 const filteredPlaces = computed(() => {
   if (filterInput.value.length > 0) {
@@ -261,7 +269,14 @@ onMounted(async () => {
             <div class="col">
               <h5>Toggle color</h5>
               <div class="form-check form-switch">
-                <input class="form-check-input" type="checkbox" id="toggleColor" :value="toggleColor" :checked="toggleColor" @click="toggleColor = !toggleColor"/>
+                <input
+                  class="form-check-input"
+                  type="checkbox"
+                  id="toggleColor"
+                  :value="toggleColor"
+                  :checked="toggleColor"
+                  @click="toggleColor = !toggleColor"
+                />
                 <label class="form-check-label" for="toggleColor">Color/Grayscale</label>
               </div>
             </div>
